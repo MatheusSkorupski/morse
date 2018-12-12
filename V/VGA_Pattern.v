@@ -8,6 +8,7 @@ module	VGA_Pattern	(	//	Read Out Side
 						//	Control Signals
 						iRST_n,
 						iColor_SW,
+						someChar,
 						);
 //	Read Out Side
 output	reg	[9:0]	oRed;
@@ -20,10 +21,12 @@ input				iVGA_CLK;
 input				iRST_n;
 input				iColor_SW;
 
+input [7:0]		someChar;
+
 wire [7:0]		bufferTX [0:4];
 wire [7:0]		bufferRX [0:4];
 
-	assign bufferTX[0] = "H";
+	assign bufferTX[0] = someChar;
 	assign bufferTX[1] = "E";
 	assign bufferTX[2] = "L";
 	assign bufferTX[3] = "L";
@@ -36,9 +39,11 @@ wire [7:0]		bufferRX [0:4];
 	assign bufferRX[4] = "D";
 
 integer			it = 0;
+integer 			offset;
 
 always@(posedge iVGA_CLK or negedge iRST_n)
 begin
+offset <= 20+it*50;
 	if(!iRST_n)
 	begin
 		oRed	<=	0;
@@ -47,187 +52,270 @@ begin
 	end
 	else
 	begin
-	for (it = 0; it<5; it=it+1)
-		begin
+		if (bufferTX[it]=="0")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&((iVGA_Y<24)||(iVGA_Y>=96 && iVGA_Y<120)) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=24 && iVGA_Y<96)
+			? 15 : 0;
+		else 
 		if (bufferTX[it]=="1")
-			if (
-			((iVGA_X>=(20+it*50)+20 && iVGA_X<(20+it*50)+30)&&(iVGA_Y<120)) && bufferTX[it]
-			)
-			oRed <= 15;
-		else if (bufferTX[it]=="H")
-			if (
-			((iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+10)||(iVGA_X>=(20+it*50)+20 && iVGA_X<(20+it*50)+30))&&(iVGA_Y>=120 && iVGA_Y<240) || 
-			(iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+20)&&(iVGA_Y>=168 && iVGA_Y<192) 
-			)
-			oRed <= 15;
-		else if (bufferTX[it]=="E")
-			if (
-			(iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+30)&&(iVGA_Y>=120 && iVGA_Y<144) || 
-			(iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+10)&&(iVGA_Y>=144 && iVGA_Y<168) ||
-			(iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+20)&&(iVGA_Y>=168 && iVGA_Y<192) ||
-			(iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+10)&&(iVGA_Y>=192 && iVGA_Y<216) ||
-			(iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+20)&&(iVGA_Y>=216 && iVGA_Y<240) 
-			)
-			oRed <= 15;
-		else if (bufferTX[it]=="L")
-			if (
-			(iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+10)&&(iVGA_Y>=120 && iVGA_Y<240) || 
-			(iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+30)&&(iVGA_Y>=216 && iVGA_Y<240)
-			)
-			oRed <= 15;
-		else if (bufferTX[it]=="O")
-			if (
-			(iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+30)&&((iVGA_Y>=336 && iVGA_Y<360)||(iVGA_Y>=264 && iVGA_Y<288)) ||
-			((iVGA_X>=(20+it*50)+0 && iVGA_X<(20+it*50)+10)||(iVGA_X>=(20+it*50)+20 && iVGA_X<(20+it*50)+30))&&(iVGA_Y>=264 && iVGA_Y<360)
-			)
-			oRed <= 15;
-		end
-	oGreen <= 0;
-	oBlue <= 0;
-	
-//		if(iColor_SW == 1)
-//		begin
-//			if (iVGA_Y<120)
-//			begin
-//				oRed	<=	(iVGA_X<40)						?			0	:
-//							(iVGA_X>=40 && iVGA_X<80)		?			1	:
-//							(iVGA_X>=80 && iVGA_X<120)		?			2	:
-//							(iVGA_X>=120 && iVGA_X<160)		?			3	:
-//							(iVGA_X>=160 && iVGA_X<200)		?			4	:
-//							(iVGA_X>=200 && iVGA_X<240)		?			5	:
-//							(iVGA_X>=240 && iVGA_X<280)		?			6	:
-//							(iVGA_X>=280 && iVGA_X<320)		?			7	:
-//							(iVGA_X>=320 && iVGA_X<360)		?			8	:
-//							(iVGA_X>=360 && iVGA_X<400)		?			9	:
-//							(iVGA_X>=400 && iVGA_X<440)		?			10	:
-//							(iVGA_X>=440 && iVGA_X<480 )	?			11	:
-//							(iVGA_X>=480 && iVGA_X<520 )	?			12	:
-//							(iVGA_X>=520 && iVGA_X<560 )	?			13	:
-//							(iVGA_X>=560 && iVGA_X<600 )	?			14	:
-//																		15	;
-//				oGreen	<=	0;	
-//				oBlue	<=	0;
-//			end
-//			else if (iVGA_Y>=120 && iVGA_Y<240)
-//			begin
-//				oRed	<=	0;
-//				oGreen	<=	(iVGA_X<40)						?			15	:
-//							(iVGA_X>=40 && iVGA_X<80)		?			14	:
-//							(iVGA_X>=80 && iVGA_X<120)		?			13	:
-//							(iVGA_X>=120 && iVGA_X<160)		?			12	:
-//							(iVGA_X>=160 && iVGA_X<200)		?			11	:
-//							(iVGA_X>=200 && iVGA_X<240)		?			10	:
-//							(iVGA_X>=240 && iVGA_X<280)		?			9	:
-//							(iVGA_X>=280 && iVGA_X<320)		?			8	:
-//							(iVGA_X>=320 && iVGA_X<360)		?			7	:
-//							(iVGA_X>=360 && iVGA_X<400)		?			6	:
-//							(iVGA_X>=400 && iVGA_X<440)		?			5	:
-//							(iVGA_X>=440 && iVGA_X<480 )	?			4	:
-//							(iVGA_X>=480 && iVGA_X<520 )	?			3	:
-//							(iVGA_X>=520 && iVGA_X<560 )	?			2	:
-//							(iVGA_X>=560 && iVGA_X<600 )	?			1	:
-//																		0	;
-//				oBlue	<=	0;
-//			end
-//			else if (iVGA_Y>=240 && iVGA_Y<360)
-//			begin
-//				oRed	<=	0;
-//				oGreen	<=	0;
-//				oBlue	<=	(iVGA_X<40)						?			0	:
-//							(iVGA_X>=40 && iVGA_X<80)		?			1	:
-//							(iVGA_X>=80 && iVGA_X<120)		?			2	:
-//							(iVGA_X>=120 && iVGA_X<160)		?			3	:
-//							(iVGA_X>=160 && iVGA_X<200)		?			4	:
-//							(iVGA_X>=200 && iVGA_X<240)		?			5	:
-//							(iVGA_X>=240 && iVGA_X<280)		?			6	:
-//							(iVGA_X>=280 && iVGA_X<320)		?			7	:
-//							(iVGA_X>=320 && iVGA_X<360)		?			8	:
-//							(iVGA_X>=360 && iVGA_X<400)		?			9	:
-//							(iVGA_X>=400 && iVGA_X<440)		?			10	:
-//							(iVGA_X>=440 && iVGA_X<480 )	?			11	:
-//							(iVGA_X>=480 && iVGA_X<520 )	?			12	:
-//							(iVGA_X>=520 && iVGA_X<560 )	?			13	:
-//							(iVGA_X>=560 && iVGA_X<600 )	?			14	:
-//																		15	;
-//			end
-//			else
-//			begin
-//				oRed	<=	(iVGA_X<40)						?			15	:
-//							(iVGA_X>=40 && iVGA_X<80)		?			14	:
-//							(iVGA_X>=80 && iVGA_X<120)		?			13	:
-//							(iVGA_X>=120 && iVGA_X<160)		?			12	:
-//							(iVGA_X>=160 && iVGA_X<200)		?			11	:
-//							(iVGA_X>=200 && iVGA_X<240)		?			10	:
-//							(iVGA_X>=240 && iVGA_X<280)		?			9	:
-//							(iVGA_X>=280 && iVGA_X<320)		?			8	:
-//							(iVGA_X>=320 && iVGA_X<360)		?			7	:
-//							(iVGA_X>=360 && iVGA_X<400)		?			6	:
-//							(iVGA_X>=400 && iVGA_X<440)		?			5	:
-//							(iVGA_X>=440 && iVGA_X<480 )	?			4	:
-//							(iVGA_X>=480 && iVGA_X<520 )	?			3	:
-//							(iVGA_X>=520 && iVGA_X<560 )	?			2	:
-//							(iVGA_X>=560 && iVGA_X<600 )	?			1	:
-//																		0	;
-//							
-//				oGreen	<=	(iVGA_X<40)						?			15	:
-//							(iVGA_X>=40 && iVGA_X<80)		?			14	:
-//							(iVGA_X>=80 && iVGA_X<120)		?			13	:
-//							(iVGA_X>=120 && iVGA_X<160)		?			12	:
-//							(iVGA_X>=160 && iVGA_X<200)		?			11	:
-//							(iVGA_X>=200 && iVGA_X<240)		?			10	:
-//							(iVGA_X>=240 && iVGA_X<280)		?			9	:
-//							(iVGA_X>=280 && iVGA_X<320)		?			8	:
-//							(iVGA_X>=320 && iVGA_X<360)		?			7	:
-//							(iVGA_X>=360 && iVGA_X<400)		?			6	:
-//							(iVGA_X>=400 && iVGA_X<440)		?			5	:
-//							(iVGA_X>=440 && iVGA_X<480 )	?			4	:
-//							(iVGA_X>=480 && iVGA_X<520 )	?			3	:
-//							(iVGA_X>=520 && iVGA_X<560 )	?			2	:
-//							(iVGA_X>=560 && iVGA_X<600 )	?			1	:
-//																		0	;
-//		
-//				oBlue	<=	(iVGA_X<40)						?			15	:
-//							(iVGA_X>=40 && iVGA_X<80)		?			14	:
-//							(iVGA_X>=80 && iVGA_X<120)		?			13	:
-//							(iVGA_X>=120 && iVGA_X<160)		?			12	:
-//							(iVGA_X>=160 && iVGA_X<200)		?			11	:
-//							(iVGA_X>=200 && iVGA_X<240)		?			10	:
-//							(iVGA_X>=240 && iVGA_X<280)		?			9	:
-//							(iVGA_X>=280 && iVGA_X<320)		?			8	:
-//							(iVGA_X>=320 && iVGA_X<360)		?			7	:
-//							(iVGA_X>=360 && iVGA_X<400)		?			6	:
-//							(iVGA_X>=400 && iVGA_X<440)		?			5	:
-//							(iVGA_X>=440 && iVGA_X<480 )	?			4	:
-//							(iVGA_X>=480 && iVGA_X<520 )	?			3	:
-//							(iVGA_X>=520 && iVGA_X<560 )	?			2	:
-//							(iVGA_X>=560 && iVGA_X<600 )	?			1	:
-//																		0	;
-//		
-//			end
-//		end
-//		else
-//		begin
-//			oRed	<=	(iVGA_Y<120)					?			3	:
-//						(iVGA_Y>=120 && iVGA_Y<240)		?			7	:
-//						(iVGA_Y>=240 && iVGA_Y<360)		?			11	:
-//																	15	;
-//			oGreen	<=	(iVGA_X<80)						?			1	:
-//						(iVGA_X>=80 && iVGA_X<160)		?			3	:
-//						(iVGA_X>=160 && iVGA_X<240)		?			5	:
-//						(iVGA_X>=240 && iVGA_X<320)		?			7	:
-//						(iVGA_X>=320 && iVGA_X<400)		?			9	:
-//						(iVGA_X>=400 && iVGA_X<480)		?			11	:
-//						(iVGA_X>=480 && iVGA_X<560)		?			13	:
-//																	15	;
-//			oBlue	<=	(iVGA_Y<60)						?			15	:
-//						(iVGA_Y>=60 && iVGA_Y<120)		?			13	:
-//						(iVGA_Y>=120 && iVGA_Y<180)		?			11	:
-//						(iVGA_Y>=180 && iVGA_Y<240)		?			9	:
-//						(iVGA_Y>=240 && iVGA_Y<300)		?			7	:
-//						(iVGA_Y>=300 && iVGA_Y<360)		?			5	:
-//						(iVGA_Y>=360 && iVGA_Y<420)		?			3	:
-//																	1	;
-//		end
+			oRed <=
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y<120)
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="2")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y<24) ||
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+20)&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120)
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="3")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y<24) || 
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120) 
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="4")
+			oRed <=
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=72 && iVGA_Y<120)
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="5")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y<24) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120) 
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="6")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y<24) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+20)&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=290 && iVGA_X<300))&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120)
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="7")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y<24) ||
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=24 && iVGA_Y<120)
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="8")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y<24) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+20)||(iVGA_X>=390 && iVGA_X<400))&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120)
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="9")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y<24) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120) 
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="A" || bufferTX[it]=="a")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&((iVGA_Y<24)||(iVGA_Y>=48 && iVGA_Y<72)) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y<120)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="B" || bufferTX[it]=="b")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+20)&&(iVGA_Y<120) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&((iVGA_Y>=48 && iVGA_Y<72)||(iVGA_Y>=96 && iVGA_Y<120)) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=72 && iVGA_Y<96)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="C" || bufferTX[it]=="c")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<50)&&((iVGA_Y>=0 && iVGA_Y<132)||(iVGA_Y>=96 && iVGA_Y<120)) ||
+			(iVGA_X>=offset+0 && iVGA_X<30)&&(iVGA_Y>=0 && iVGA_Y<120)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="D" || bufferTX[it]=="d")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<50)&&((iVGA_Y>=0 && iVGA_Y<132)||(iVGA_Y>=96 && iVGA_Y<120)) ||
+			(iVGA_X>=offset+0 && iVGA_X<30)&&(iVGA_Y>=0 && iVGA_Y<120)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="E" || bufferTX[it]=="e")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=0 && iVGA_Y<24) || 
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+20)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+20)&&(iVGA_Y>=96 && iVGA_Y<120) 
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="F" || bufferTX[it]=="f")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=0 && iVGA_Y<24) || 
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=96 && iVGA_Y<120) 
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="G" || bufferTX[it]=="g")
+			oRed <=
+			(iVGA_X>=offset+10 && iVGA_X<offset+30)&&(iVGA_Y>=0 && iVGA_Y<24) || 
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+15 && iVGA_X<offset+30))&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120) 
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="H" || bufferTX[it]=="h")
+			oRed <=
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=0 && iVGA_Y<120) || 
+			(iVGA_X>=offset+0 && iVGA_X<offset+20)&&(iVGA_Y>=48 && iVGA_Y<72) 
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="I" || bufferTX[it]=="i")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&((iVGA_Y>=0 && iVGA_Y<24)||(iVGA_Y>=96 && iVGA_Y<120)) ||
+			(iVGA_X>=offset+10 && iVGA_X<offset+20)&&(iVGA_Y>=0 && iVGA_Y<120) 
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="J" || bufferTX[it]=="j")
+			oRed <=
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=0 && iVGA_Y<120) || 
+			(iVGA_X>=offset+0 && iVGA_X<offset+20)&&(iVGA_Y>=48 && iVGA_Y<120) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120)
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="K" || bufferTX[it]=="k")
+			oRed <=
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&((iVGA_Y>=0 && iVGA_Y<48)||(iVGA_Y>=72 && iVGA_Y<120)) || 
+			(iVGA_X>=offset+0 && iVGA_X<offset+20)&&(iVGA_Y>=48 && iVGA_Y<72) 
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="L" || bufferTX[it]=="l")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=0 && iVGA_Y<120) || 
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="M" || bufferTX[it]=="m")
+			oRed <=
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=0 && iVGA_Y<120) || 
+			((iVGA_X>=offset+0 && iVGA_X<offset+13)||(iVGA_X>=offset+17 && iVGA_X<offset+30))&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+10 && iVGA_X<offset+20)&&(iVGA_Y>=48 && iVGA_Y<72)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="N" || bufferTX[it]=="n")
+			oRed <=
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=0 && iVGA_Y<120) || 
+			(iVGA_X>=offset+10 && iVGA_X<offset+13)&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+13 && iVGA_X<offset+17)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+17 && iVGA_X<offset+20)&&(iVGA_Y>=0 && iVGA_Y<96)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="O" || bufferTX[it]=="o")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&((iVGA_Y>=96 && iVGA_Y<120)||(iVGA_Y>=24 && iVGA_Y<48)) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=24 && iVGA_Y<120)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="P" || bufferTX[it]=="p")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=0 && iVGA_Y<120) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&((iVGA_Y>=0 && iVGA_Y<24)||(iVGA_Y>=48 && iVGA_Y<72))
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="Q" || bufferTX[it]=="q")
+			oRed <=
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=0 && iVGA_Y<120) ||
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&((iVGA_Y>=0 && iVGA_Y<24)||(iVGA_Y>=48 && iVGA_Y<72))
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="R" || bufferTX[it]=="r")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=24 && iVGA_Y<120) ||
+			(iVGA_X>=offset+10 && iVGA_X<offset+20)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=24 && iVGA_Y<48)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="S" || bufferTX[it]=="s")
+			oRed <=
+			(iVGA_X>=offset+10 && iVGA_X<offset+30)&&(iVGA_Y>=0 && iVGA_Y<24) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+10)&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+10 && iVGA_X<offset+20)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+20 && iVGA_X<offset+30)&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+20)&&(iVGA_Y>=96 && iVGA_Y<120)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="T" || bufferTX[it]=="t")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=0 && iVGA_Y<24) ||
+			(iVGA_X>=offset+10 && iVGA_X<offset+20)&&(iVGA_Y>=0 && iVGA_Y<120)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="U" || bufferTX[it]=="u")
+			oRed <=
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=0 && iVGA_Y<120) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="V" || bufferTX[it]=="v")
+			oRed <=
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=0 && iVGA_Y<72) ||
+			((iVGA_X>=offset+5 && iVGA_X<offset+15)||(iVGA_X>=offset+15 && iVGA_X<offset+25))&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+10 && iVGA_X<offset+20)&&(iVGA_Y>=96 && iVGA_Y<120)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="W" || bufferTX[it]=="w")
+			oRed <=
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&(iVGA_Y>=0 && iVGA_Y<120) ||
+			((iVGA_X>=offset+10 && iVGA_X<offset+13)||(iVGA_X>=offset+17 && iVGA_X<offset+20))&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+13 && iVGA_X<offset+17)&&(iVGA_Y>=48 && iVGA_Y<72)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="X" || bufferTX[it]=="x")
+			oRed <=
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&((iVGA_Y>=0 && iVGA_Y<24)||(iVGA_Y>=96 && iVGA_Y<120)) ||
+			((iVGA_X>=offset+3 && iVGA_X<offset+13)||(iVGA_X>=offset+17 && iVGA_X<offset+27))&&((iVGA_Y>=24 && iVGA_Y<48)||(iVGA_Y>=72 && iVGA_Y<96)) ||
+			(iVGA_X>=offset+10 && iVGA_X<offset+20)&&(iVGA_Y>=48 && iVGA_Y<72)
+			? 15 : 0;
+		else		
+		if (bufferTX[it]=="Y" || bufferTX[it]=="y")
+			oRed <=
+			((iVGA_X>=offset+0 && iVGA_X<offset+10)||(iVGA_X>=offset+20 && iVGA_X<offset+30))&&((iVGA_Y>=0 && iVGA_Y<24)) ||
+			((iVGA_X>=offset+3 && iVGA_X<offset+13)||(iVGA_X>=offset+17 && iVGA_X<offset+27))&&((iVGA_Y>=24 && iVGA_Y<48)) ||
+			(iVGA_X>=offset+10 && iVGA_X<offset+20)&&(iVGA_Y>=48 && iVGA_Y<120)
+			? 15 : 0;
+		else
+		if (bufferTX[it]=="Z" || bufferTX[it]=="z")
+			oRed <=
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=0 && iVGA_Y<24) ||
+			(iVGA_X>=offset+15 && iVGA_X<offset+25)&&(iVGA_Y>=24 && iVGA_Y<48) ||
+			(iVGA_X>=offset+10 && iVGA_X<offset+20)&&(iVGA_Y>=48 && iVGA_Y<72) ||
+			(iVGA_X>=offset+5 && iVGA_X<offset+15)&&(iVGA_Y>=72 && iVGA_Y<96) ||
+			(iVGA_X>=offset+0 && iVGA_X<offset+30)&&(iVGA_Y>=96 && iVGA_Y<120)
+			? 15 : 0;		
+		else
+			oRed<=7;
+		
+		oBlue<=oRed;
 	end
 end
 
